@@ -218,6 +218,60 @@
     font-family:'Newsreader', serif; font-size:14.5px; line-height:1.7; color:var(--ink-soft);
     margin-bottom:18px;
   }
+
+  /* ---- mejoras UX: gancho de entrada / revelado del nombre ---- */
+  .story-hook{
+    font-family:'Fraunces', serif; font-style:italic; font-size:13.5px; line-height:1.5;
+    color:var(--ink-soft); text-align:center; margin-bottom:12px; opacity:0.85;
+  }
+  .story-name .placeholder{ transition:opacity .5s ease; }
+  .story-name .real{ display:none; opacity:0; transition:opacity .9s ease; }
+  .story-name.revealed .placeholder{ display:none; }
+  .story-name.revealed .real{ display:inline; opacity:1; }
+
+  /* ---- mejoras UX: racha de regreso ---- */
+  .streakBadge{
+    background:none; border:1px solid var(--line); color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.03em;
+    padding:5px 9px; border-radius:999px; flex-shrink:0; white-space:nowrap;
+    display:none; align-items:center;
+  }
+  .streakBadge.show{ display:flex; }
+  .return-note{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.05em;
+    color:var(--brass); opacity:0; transition:opacity 1.4s ease; text-transform:lowercase;
+    margin-top:10px;
+  }
+  .return-note.in{ opacity:0.85; }
+
+  /* ---- mejoras UX: progreso por categoría ---- */
+  .tab-wrap{ display:flex; flex-direction:column; align-items:center; gap:3px; }
+  .tab-count{
+    font-family:'IBM Plex Mono', monospace; font-size:9.5px; color:var(--brass-dim);
+    letter-spacing:0.03em; opacity:0; transition:opacity .6s ease; display:block;
+  }
+  .tab-count.in{ opacity:0.85; }
+
+  /* ---- mejoras UX: feedback de puntos / hitos al cerrar una historia ---- */
+  .points-toast{
+    margin-top:16px; font-family:'IBM Plex Mono', monospace; font-size:13px;
+    color:var(--brass); text-align:center; opacity:0; transform:translateY(6px);
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .points-toast.in{ opacity:1; transform:translateY(0); }
+  .hito-toast{
+    margin-top:8px; font-family:'Newsreader', serif; font-style:italic; font-size:13px;
+    color:var(--ink-soft); text-align:center; max-width:280px; opacity:0; transition:opacity .6s ease;
+  }
+  .hito-toast.in{ opacity:1; }
+
+  /* ---- mejoras UX: gancho hacia la próxima historia ---- */
+  .next-hint{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--muted);
+    text-align:center; margin-bottom:4px; text-transform:lowercase; letter-spacing:0.02em;
+    max-width:280px;
+  }
+  .next-hint span{ color:var(--brass); }
 </style>
 </head>
 <body>
@@ -226,12 +280,14 @@
     <button class="brand" id="brandBtn" title="Volver al inicio">Parentesys</button>
     <button class="backbtn" id="backBtn" aria-label="volver">‹</button>
     <div class="crumbwrap"><div class="crumb" id="crumb"></div></div>
+    <span class="streakBadge" id="streakBadge"></span>
     <button class="pointsBadge" id="pointsBadge"></button>
   </div>
   <div class="stage">
     <div class="view active" id="view-intro">
       <div class="title" id="introTitle">Alejate de la tecnología y del consumismo.<br>Volvé a la esencia de tu ser.</div>
       <div class="hint" id="introHint">tocá en cualquier lugar</div>
+      <div class="return-note" id="returnNote"></div>
     </div>
     <div class="view" id="view-cat">
       <div class="prompt">hoy estoy con...</div>
@@ -243,8 +299,9 @@
     </div>
     <div class="view" id="view-story">
       <div class="story-wrap">
+        <div class="story-hook" id="storyHook"></div>
         <div class="story-top">
-          <div class="story-name" id="storyName"></div>
+          <div class="story-name" id="storyName"><span class="placeholder">una historia real, todavía sin nombre</span><span class="real"></span></div>
           <button class="voice-btn" id="voiceBtn">reproducir</button>
         </div>
         <div class="story-body" id="storyBody"></div>
@@ -3327,7 +3384,7 @@ const DATA = [
 ];
 
 // ---- CONFIG ----
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzGtYibXkCCnJo7-HymG_jtOfc9IKccSnqI7mEE3paO7Th_8bp6KxlcFr1DJymATDjGdg/exec'; // ver guía Apps Script adjunta
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyd3KjfnnoEK4qVHDXXM6O2yQsu9Z7Py5AIrdH6GSCkSNHYORpY8xD0bG6283EjNjJmaQ/exec'; // ver guía Apps Script adjunta
 const MINUTOS_PARA_PEDIR_NOMBRE = 2;
 const PUNTOS_POR_HISTORIA = 10;
 const UMBRAL_PREMIO = 0.8; // 80%
@@ -3368,19 +3425,13 @@ function getPoints(){ return parseInt(lsGet('parentesys_points') || '0', 10); }
 function setPoints(n){ lsSet('parentesys_points', String(n)); }
 
 function enviarApiAppsScript(payload){
-  if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PEGA_ACA') === 0){
-    console.warn('[Parentesys] APPS_SCRIPT_URL no configurada, no se envía:', payload);
-    return;
-  }
-  console.log('[Parentesys] Enviando a Apps Script:', payload);
+  if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PEGA_ACA') === 0) return;
   fetch(APPS_SCRIPT_URL, {
     method:'POST',
     mode:'no-cors', // Apps Script no soporta preflight CORS: se envía como texto plano
     headers:{ 'Content-Type':'text/plain;charset=utf-8' },
     body: JSON.stringify(payload)
-  })
-    .then(()=>console.log('[Parentesys] Fetch resuelto sin error de red para:', payload.accion, '(con no-cors no se puede leer la respuesta real de Apps Script; revisá el log de Ejecuciones ahí)'))
-    .catch(err=>console.error('[Parentesys] Error de red enviando a Apps Script:', err, payload));
+  }).catch(()=>{ /* falla silenciosa, no interrumpe la experiencia */ });
 }
 
 // ---- NAVEGACIÓN / TOPBAR ----
@@ -3442,7 +3493,7 @@ function marcarHistoriaLeida(cat, sub){
     lsSet('parentesys_premio_desbloqueado', '1');
     setTimeout(()=>abrirModal('modalPremio'), 500);
   }
-  enviarApiAppsScript({ accion:'progreso', id:getUid(), puntos:getPoints(), historias_leidas:read.size, total_historias:TOTAL_HISTORIAS });
+  enviarApiAppsScript({ accion:'progreso', id:getUid(), puntos:getPoints(), historias_leidas:read.size });
 }
 
 function abrirModal(id){ document.getElementById(id).classList.add('show'); }
