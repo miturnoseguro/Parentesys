@@ -453,9 +453,24 @@
 
   <div class="modal-overlay" id="modalNombre">
     <div class="modal-card">
-      <div class="modal-eyebrow">un momento</div>
-      <div class="modal-title">Ya pasaste un rato largo acá. ¿Cómo te llamás?</div>
+      <div class="modal-eyebrow">antes de empezar</div>
+      <div class="modal-title">¿Cómo te llamás y de qué signo sos?</div>
       <input type="text" class="modal-field" id="inputNombre" placeholder="tu nombre" autocomplete="off">
+      <select class="modal-field" id="inputSigno">
+        <option value="" disabled selected>tu signo</option>
+        <option value="aries">aries</option>
+        <option value="tauro">tauro</option>
+        <option value="geminis">géminis</option>
+        <option value="cancer">cáncer</option>
+        <option value="leo">leo</option>
+        <option value="virgo">virgo</option>
+        <option value="libra">libra</option>
+        <option value="escorpio">escorpio</option>
+        <option value="sagitario">sagitario</option>
+        <option value="capricornio">capricornio</option>
+        <option value="acuario">acuario</option>
+        <option value="piscis">piscis</option>
+      </select>
       <button class="modal-btn" id="btnGuardarNombre">guardar</button>
       <button class="modal-skip" id="btnSkipNombre">ahora no</button>
     </div>
@@ -3631,7 +3646,7 @@ function marcarHistoriaLeida(cat, sub){
     lsSet('parentesys_premio_desbloqueado', '1');
     setTimeout(()=>abrirModal('modalPremio'), 500);
   }
-  enviarApiAppsScript({ accion:'progreso', id:getUid(), puntos:getPoints(), historias_leidas:read.size });
+  enviarApiAppsScript({ accion:'progreso', id:getUid(), puntos:getPoints(), historias_leidas:read.size, total_historias:TOTAL_HISTORIAS });
 }
 
 function abrirModal(id){ document.getElementById(id).classList.add('show'); }
@@ -3642,29 +3657,21 @@ document.getElementById('pointsBadge').onclick = function(){
 };
 document.getElementById('btnCerrarPremio').onclick = function(){ cerrarModal('modalPremio'); };
 
-// ---- CAPTURA DE NOMBRE A LOS 10 MINUTOS ----
-(function trackearTiempoEnApp(){
-  const KEY = 'parentesys_ms_totales';
-  let acumulado = parseInt(lsGet(KEY) || '0', 10);
-  let ultimoTick = Date.now();
-  setInterval(()=>{
-    if(document.hidden) { ultimoTick = Date.now(); return; }
-    const ahora = Date.now();
-    acumulado += (ahora - ultimoTick);
-    ultimoTick = ahora;
-    lsSet(KEY, String(acumulado));
-    if(acumulado >= MINUTOS_PARA_PEDIR_NOMBRE * 60 * 1000 && lsGet('parentesys_nombre') === null && lsGet('parentesys_nombre_omitido') !== '1'){
-      abrirModal('modalNombre');
-    }
-  }, 15000);
-})();
+// ---- CAPTURA DE NOMBRE Y SIGNO APENAS ENTRA ----
+function chequearNombreAlEntrar(){
+  if(lsGet('parentesys_nombre') === null && lsGet('parentesys_nombre_omitido') !== '1'){
+    setTimeout(()=>abrirModal('modalNombre'), 900);
+  }
+}
 
 document.getElementById('btnGuardarNombre').onclick = function(){
   const nombre = document.getElementById('inputNombre').value.trim();
-  if(!nombre) return;
+  const signo = document.getElementById('inputSigno').value;
+  if(!nombre || !signo) return;
   lsSet('parentesys_nombre', nombre);
+  lsSet('parentesys_signo', signo);
   sessionStorage.setItem('parentesys_recien_registrado', '1');
-  enviarApiAppsScript({ accion:'registro', id:getUid(), nombre:nombre, puntos:getPoints() });
+  enviarApiAppsScript({ accion:'registro', id:getUid(), nombre:nombre, signo:signo, puntos:getPoints() });
   cerrarModal('modalNombre');
 };
 document.getElementById('btnSkipNombre').onclick = function(){
