@@ -3368,13 +3368,19 @@ function getPoints(){ return parseInt(lsGet('parentesys_points') || '0', 10); }
 function setPoints(n){ lsSet('parentesys_points', String(n)); }
 
 function enviarApiAppsScript(payload){
-  if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PEGA_ACA') === 0) return;
+  if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf('PEGA_ACA') === 0){
+    console.warn('[Parentesys] APPS_SCRIPT_URL no configurada, no se envía:', payload);
+    return;
+  }
+  console.log('[Parentesys] Enviando a Apps Script:', payload);
   fetch(APPS_SCRIPT_URL, {
     method:'POST',
     mode:'no-cors', // Apps Script no soporta preflight CORS: se envía como texto plano
     headers:{ 'Content-Type':'text/plain;charset=utf-8' },
     body: JSON.stringify(payload)
-  }).catch(()=>{ /* falla silenciosa, no interrumpe la experiencia */ });
+  })
+    .then(()=>console.log('[Parentesys] Fetch resuelto sin error de red para:', payload.accion, '(con no-cors no se puede leer la respuesta real de Apps Script; revisá el log de Ejecuciones ahí)'))
+    .catch(err=>console.error('[Parentesys] Error de red enviando a Apps Script:', err, payload));
 }
 
 // ---- NAVEGACIÓN / TOPBAR ----
@@ -3436,7 +3442,7 @@ function marcarHistoriaLeida(cat, sub){
     lsSet('parentesys_premio_desbloqueado', '1');
     setTimeout(()=>abrirModal('modalPremio'), 500);
   }
-  enviarApiAppsScript({ accion:'progreso', id:getUid(), puntos:getPoints(), historias_leidas:read.size });
+  enviarApiAppsScript({ accion:'progreso', id:getUid(), puntos:getPoints(), historias_leidas:read.size, total_historias:TOTAL_HISTORIAS });
 }
 
 function abrirModal(id){ document.getElementById(id).classList.add('show'); }
