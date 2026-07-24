@@ -6,17 +6,50 @@
 <title>Pausa</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Newsreader:ital,wght@0,300;0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #14201c;
-    --bg-deep: #0e1613;
-    --ink: #efe6d8;
-    --ink-soft: #cfc6b6;
-    --muted: #94a596;
-    --brass: #c9a15a;
-    --brass-dim: #8d764a;
-    --line: rgba(239,230,216,0.10);
+    --bg: #fbf8f2;
+    --bg-deep: #f2ede2;
+    --ink: #2e2b24;
+    --ink-soft: #5c5748;
+    --muted: #97917d;
+    --brass: #d68a4c;
+    --brass-dim: #e3b98c;
+    --brass-soft: rgba(214,138,76,0.12);
+    --line: rgba(46,43,36,0.10);
+    --shadow: rgba(120,100,70,0.16);
+  }
+  @keyframes popIn{
+    0%{ opacity:0; transform:scale(0.85) translateY(10px); }
+    60%{ opacity:1; transform:scale(1.03) translateY(-1px); }
+    100%{ opacity:1; transform:scale(1) translateY(0); }
+  }
+  @keyframes softPulse{
+    0%, 100%{ box-shadow:0 0 0 0 var(--brass-soft); }
+    50%{ box-shadow:0 0 0 8px rgba(214,138,76,0); }
+  }
+  @keyframes badgeBump{
+    0%{ transform:scale(1); }
+    35%{ transform:scale(1.18); }
+    60%{ transform:scale(0.96); }
+    100%{ transform:scale(1); }
+  }
+  @keyframes floatArrow{
+    0%, 100%{ transform:translateY(0); opacity:0.55; }
+    50%{ transform:translateY(6px); opacity:1; }
+  }
+  @keyframes toastRise{
+    0%{ opacity:0; transform:translateY(10px) scale(0.96); }
+    100%{ opacity:1; transform:translateY(0) scale(1); }
+  }
+  @keyframes shimmerBar{
+    0%{ background-position:-120px 0; }
+    100%{ background-position:220px 0; }
+  }
+  @keyframes glowRing{
+    0%, 100%{ box-shadow:0 0 0 0 rgba(214,138,76,0.35); }
+    50%{ box-shadow:0 0 0 6px rgba(214,138,76,0); }
   }
   *{box-sizing:border-box;}
   html,body{height:100%;}
@@ -24,7 +57,7 @@
     margin:0;
     background:var(--bg-deep);
     color:var(--ink);
-    font-family:'Newsreader', serif;
+    font-family:'Inter', sans-serif;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -37,7 +70,7 @@
     height:100vh;
     max-height:900px;
     background:
-      radial-gradient(120% 90% at 50% -10%, rgba(201,161,90,0.05), transparent 60%),
+      radial-gradient(120% 90% at 50% -10%, rgba(214,138,76,0.10), transparent 60%),
       var(--bg);
     position:relative;
     overflow:hidden;
@@ -45,7 +78,7 @@
     flex-direction:column;
   }
   @media(min-width:431px){
-    .device{ border-radius:28px; box-shadow:0 40px 90px rgba(0,0,0,0.5); border:1px solid rgba(239,230,216,0.06); }
+    .device{ border-radius:28px; box-shadow:0 30px 70px rgba(120,100,70,0.18); border:1px solid rgba(46,43,36,0.06); }
   }
   .topbar{
     position:absolute; top:0; left:0; right:0; z-index:6;
@@ -77,13 +110,27 @@
   }
   .crumb.show{opacity:1;}
   .crumb span{color:var(--brass);}
+  .pointsBadgeWrap{ display:flex; flex-direction:column; align-items:flex-end; gap:4px; flex-shrink:0; }
   .pointsBadge{
-    background:none; border:1px solid var(--brass-dim); color:var(--brass);
-    font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.03em;
-    padding:5px 9px; border-radius:999px; cursor:pointer; flex-shrink:0; white-space:nowrap;
-    transition:background .3s, color .3s;
+    background:var(--brass-soft); border:1.5px solid var(--brass); color:var(--brass);
+    font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:11px; letter-spacing:0.03em;
+    padding:6px 12px; border-radius:999px; cursor:pointer; flex-shrink:0; white-space:nowrap;
+    display:flex; align-items:center; gap:5px;
+    transition:background .3s, color .3s, transform .3s cubic-bezier(0.34,1.56,0.64,1), box-shadow .3s;
+    box-shadow:0 2px 8px var(--shadow);
   }
-  .pointsBadge.unlocked{ background:var(--brass); color:var(--bg-deep); border-color:var(--brass); }
+  .pointsBadge:hover{ transform:translateY(-1px) scale(1.03); }
+  .pointsBadge.bump{ animation:badgeBump .5s cubic-bezier(0.34,1.56,0.64,1); }
+  .pointsBadge .star{ font-size:11px; }
+  .pointsBadge.unlocked{ background:var(--brass); color:#fff8ee; border-color:var(--brass); animation:softPulse 2.6s ease-in-out infinite; }
+  .pointsBar{
+    width:76px; height:4px; border-radius:999px; background:rgba(46,43,36,0.08); overflow:hidden;
+  }
+  .pointsBar-fill{
+    height:100%; border-radius:999px; width:0%;
+    background:linear-gradient(90deg, var(--brass-dim), var(--brass));
+    transition:width .7s cubic-bezier(0.34,1.2,0.64,1);
+  }
   .stage{ flex:1; position:relative; padding:0 28px; display:flex; align-items:center; justify-content:center; }
   .view{
     position:absolute; inset:0;
@@ -93,7 +140,7 @@
   }
   .view.active{ opacity:1; pointer-events:auto; }
   #view-intro .title{
-    font-family:'Fraunces', serif; font-optical-sizing:auto; font-weight:340;
+    font-family:'Poppins', sans-serif; font-weight:500;
     font-size:26px; line-height:1.5; text-align:center; color:var(--ink); max-width:320px;
     opacity:0; transform:translateY(6px); transition:opacity 1.8s ease, transform 1.8s ease;
   }
@@ -110,14 +157,15 @@
   .tabs{ display:flex; flex-wrap:wrap; gap:12px 10px; justify-content:center; max-width:360px; max-height:520px; overflow-y:auto; }
   .tab{
     background:none; border:1px solid var(--line); color:var(--ink-soft);
-    font-family:'Fraunces', serif; font-size:15px; padding:10px 18px; border-radius:999px; cursor:pointer;
-    opacity:0; transform:translateY(8px);
-    transition: opacity .6s ease, transform .6s ease, border-color .3s ease, color .3s ease, background .3s ease;
+    font-family:'Poppins', sans-serif; font-weight:500; font-size:14.5px; padding:10px 18px; border-radius:999px; cursor:pointer;
+    opacity:0; transform:translateY(10px) scale(0.92);
+    transition: opacity .5s ease, transform .5s cubic-bezier(0.34,1.56,0.64,1), border-color .3s ease, color .3s ease, background .3s ease, box-shadow .3s ease;
   }
-  .tab.in{opacity:1; transform:translateY(0);}
+  .tab.in{opacity:1; transform:translateY(0) scale(1);}
   .tab:hover, .tab:focus-visible{
-    border-color:var(--brass-dim); color:var(--ink); background:rgba(201,161,90,0.06); outline:none;
+    border-color:var(--brass); color:var(--ink); background:var(--brass-soft); outline:none; transform:translateY(-2px) scale(1.03); box-shadow:0 8px 18px var(--shadow);
   }
+  .tab:active{ transform:translateY(0) scale(0.96); }
   #view-story{ align-items:stretch; padding-bottom:20px; }
   .story-wrap{ display:flex; flex-direction:column; height:100%; max-width:360px; margin:0 auto; width:100%; }
   .story-top{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:16px; }
@@ -131,7 +179,16 @@
     font-family:'IBM Plex Mono', monospace; font-size:11px; padding:7px 14px;
     border-radius:999px; cursor:pointer; text-transform:lowercase; transition:.3s;
   }
-  .voice-btn.playing{ background:var(--brass); color:var(--bg-deep); }
+  .voice-btn:hover{ background:var(--brass-soft); transform:translateY(-1px); }
+  .voice-btn:active{ transform:scale(0.94); }
+  .voice-btn.playing{ background:var(--brass); color:#fff8ee; }
+  .scroll-cue{
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    margin-top:6px; font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.04em;
+    color:var(--brass); text-transform:lowercase; opacity:0; transition:opacity .5s ease; pointer-events:none;
+  }
+  .scroll-cue.show{ opacity:0.85; }
+  .scroll-cue .arrow{ display:inline-block; animation:floatArrow 1.6s ease-in-out infinite; }
   .story-body{ flex:1; overflow-y:auto; font-size:17px; line-height:1.85; font-weight:350; color:var(--ink); padding-right:4px; }
   .story-body p{ margin:0 0 16px 0; }
   .story-body .w{ transition:opacity .3s ease, color .3s ease; }
@@ -142,38 +199,48 @@
     font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--muted); letter-spacing:0.02em;
   }
   .insight{
-    margin-top:16px; font-family:'Fraunces', serif; font-style:italic; font-size:14.5px; line-height:1.6;
+    margin-top:16px; font-family:'Inter', sans-serif; font-style:italic; font-weight:500; font-size:14.5px; line-height:1.6;
     color:var(--brass); border-left:2px solid var(--brass-dim); padding-left:14px;
   }
   .continue-btn{
-    margin-top:20px; align-self:center; background:var(--brass); color:var(--bg-deep); border:none;
-    font-family:'IBM Plex Mono', monospace; font-size:12px; letter-spacing:0.05em; padding:12px 26px;
+    margin-top:20px; align-self:center; background:var(--brass); color:#fff8ee; border:none;
+    font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:12px; letter-spacing:0.05em; padding:12px 26px;
     border-radius:999px; cursor:pointer; text-transform:lowercase;
+    box-shadow:0 6px 16px var(--shadow);
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1), box-shadow .3s;
   }
+  .continue-btn:hover{ transform:translateY(-2px) scale(1.03); }
+  .continue-btn:active{ transform:scale(0.95); }
   #view-close .prompt{ margin-bottom:28px; }
   .close-options{ display:flex; flex-direction:column; gap:12px; width:100%; max-width:300px; }
   .opt{
     background:none; border:1px solid var(--line); color:var(--ink-soft);
-    font-family:'Newsreader', serif; font-size:15px; padding:14px 18px; border-radius:14px; cursor:pointer;
-    text-align:left; opacity:0; transform:translateY(8px);
-    transition:opacity .6s ease, transform .6s ease, border-color .3s;
+    font-family:'Inter', sans-serif; font-size:15px; padding:14px 18px; border-radius:14px; cursor:pointer;
+    text-align:left; opacity:0; transform:translateY(10px) scale(0.96);
+    transition:opacity .5s ease, transform .5s cubic-bezier(0.34,1.56,0.64,1), border-color .3s, box-shadow .3s;
   }
-  .opt.in{ opacity:1; transform:translateY(0); }
-  .opt:hover{ border-color:var(--brass-dim); color:var(--ink); }
+  .opt.in{ opacity:1; transform:translateY(0) scale(1); }
+  .opt:hover{ border-color:var(--brass-dim); color:var(--ink); box-shadow:0 4px 14px var(--shadow); transform:translateY(-1px) scale(1); }
+  .opt:active{ transform:scale(0.98); }
   .next-row{ margin-top:30px; display:flex; flex-direction:column; align-items:center; gap:16px; opacity:0; transition:opacity .8s ease; }
   .next-row.in{opacity:1;}
   .seguir{
-    font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--brass); background:none;
-    border:1px solid var(--brass-dim); padding:10px 22px; border-radius:999px; cursor:pointer; text-transform:lowercase;
+    font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:12.5px; color:#fff8ee; background:var(--brass);
+    border:1px solid var(--brass); padding:12px 26px; border-radius:999px; cursor:pointer; text-transform:lowercase;
+    box-shadow:0 6px 16px var(--shadow);
+    transition:transform .3s cubic-bezier(0.34,1.56,0.64,1), box-shadow .3s;
+    animation:glowRing 2.4s ease-in-out infinite;
   }
+  .seguir:hover{ transform:translateY(-2px) scale(1.03); }
+  .seguir:active{ transform:scale(0.96); }
   .cerrar{
     font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--muted); background:none; border:none;
-    cursor:pointer; opacity:0.55; text-transform:lowercase; letter-spacing:0.04em;
+    cursor:pointer; opacity:0.55; text-transform:lowercase; letter-spacing:0.04em; transition:opacity .3s;
   }
   .cerrar:hover{opacity:0.9;}
 
   .modal-overlay{
-    position:absolute; inset:0; background:rgba(14,22,19,0.82);
+    position:absolute; inset:0; background:rgba(46,43,36,0.45);
     display:flex; align-items:center; justify-content:center; padding:28px;
     z-index:50; opacity:0; pointer-events:none; transition:opacity .4s ease;
     backdrop-filter:blur(2px);
@@ -190,12 +257,12 @@
     color:var(--brass); text-transform:lowercase; margin-bottom:10px;
   }
   .modal-title{
-    font-family:'Fraunces', serif; font-weight:400; font-size:19px; line-height:1.45;
+    font-family:'Poppins', sans-serif; font-weight:500; font-size:19px; line-height:1.45;
     color:var(--ink); margin-bottom:18px;
   }
   .modal-field{
     width:100%; background:none; border:1px solid var(--line); color:var(--ink);
-    font-family:'Newsreader', serif; font-size:15px; padding:12px 14px; border-radius:10px;
+    font-family:'Inter', sans-serif; font-size:15px; padding:12px 14px; border-radius:10px;
     margin-bottom:12px; outline:none;
   }
   .modal-field:focus{ border-color:var(--brass-dim); }
@@ -215,13 +282,13 @@
   .modal-skip:hover{ opacity:1; }
   .reward-star{ font-size:30px; margin-bottom:14px; display:block; }
   .reward-body{
-    font-family:'Newsreader', serif; font-size:14.5px; line-height:1.7; color:var(--ink-soft);
+    font-family:'Inter', sans-serif; font-size:14.5px; line-height:1.7; color:var(--ink-soft);
     margin-bottom:18px;
   }
 
   /* ---- mejoras UX: gancho de entrada / revelado del nombre ---- */
   .story-hook{
-    font-family:'Fraunces', serif; font-style:italic; font-size:13.5px; line-height:1.5;
+    font-family:'Inter', sans-serif; font-style:italic; font-weight:500; font-size:13.5px; line-height:1.5;
     color:var(--ink-soft); text-align:center; margin-bottom:12px; opacity:0.85;
   }
   .story-name .placeholder{ transition:opacity .5s ease; }
@@ -254,13 +321,13 @@
 
   /* ---- mejoras UX: feedback de puntos / hitos al cerrar una historia ---- */
   .points-toast{
-    margin-top:16px; font-family:'IBM Plex Mono', monospace; font-size:13px;
+    margin-top:16px; font-family:'IBM Plex Mono', monospace; font-weight:500; font-size:13.5px;
     color:var(--brass); text-align:center; opacity:0; transform:translateY(6px);
     transition:opacity .5s ease, transform .5s ease;
   }
-  .points-toast.in{ opacity:1; transform:translateY(0); }
+  .points-toast.in{ opacity:1; transform:translateY(0); animation:toastRise .5s cubic-bezier(0.34,1.56,0.64,1); }
   .hito-toast{
-    margin-top:8px; font-family:'Newsreader', serif; font-style:italic; font-size:13px;
+    margin-top:8px; font-family:'Inter', sans-serif; font-style:italic; font-size:13px;
     color:var(--ink-soft); text-align:center; max-width:280px; opacity:0; transition:opacity .6s ease;
   }
   .hito-toast.in{ opacity:1; }
@@ -281,7 +348,10 @@
     <button class="backbtn" id="backBtn" aria-label="volver">‹</button>
     <div class="crumbwrap"><div class="crumb" id="crumb"></div></div>
     <span class="streakBadge" id="streakBadge"></span>
-    <button class="pointsBadge" id="pointsBadge"></button>
+    <div class="pointsBadgeWrap">
+      <button class="pointsBadge" id="pointsBadge"></button>
+      <div class="pointsBar"><div class="pointsBar-fill" id="pointsBarFill"></div></div>
+    </div>
   </div>
   <div class="stage">
     <div class="view active" id="view-intro">
@@ -305,6 +375,7 @@
           <button class="voice-btn" id="voiceBtn">reproducir</button>
         </div>
         <div class="story-body" id="storyBody"></div>
+        <div class="scroll-cue" id="scrollCue"><span class="arrow">↓</span> seguí leyendo <span class="arrow">↓</span></div>
         <div class="insight" id="storyInsight"></div>
         <div class="story-ref" id="storyRef"></div>
         <button class="continue-btn" id="toClose">continuar</button>
@@ -313,7 +384,10 @@
     <div class="view" id="view-close">
       <div class="prompt">¿qué te dejó esto?</div>
       <div class="close-options" id="closeOpts"></div>
+      <div class="points-toast" id="pointsToast"></div>
+      <div class="hito-toast" id="hitoToast"></div>
       <div class="next-row" id="nextRow">
+        <div class="next-hint" id="nextHint"></div>
         <button class="seguir" id="seguirBtn">seguir con este tema</button>
         <button class="cerrar" id="cerrarBtn">cerrar por hoy</button>
       </div>
@@ -3471,13 +3545,20 @@ function goToIntro(){
 }
 
 // ---- PUNTOS Y PREMIO ----
-function refreshPointsBadge(){
+function refreshPointsBadge(bump){
   const badge = document.getElementById('pointsBadge');
+  const fill = document.getElementById('pointsBarFill');
   const readCount = getReadSet().size;
   const pct = Math.min(100, Math.round((readCount / TOTAL_HISTORIAS) * 100));
   const unlocked = lsGet('parentesys_premio_desbloqueado') === '1';
   badge.classList.toggle('unlocked', unlocked);
-  badge.textContent = (unlocked ? '★ ' : '') + getPoints() + ' pts · ' + pct + '%';
+  badge.innerHTML = (unlocked ? '<span class="star">★</span> ' : '') + getPoints() + ' pts · ' + pct + '%';
+  if(fill) fill.style.width = pct + '%';
+  if(bump){
+    badge.classList.remove('bump');
+    void badge.offsetWidth; // reinicia la animación
+    badge.classList.add('bump');
+  }
 }
 
 function marcarHistoriaLeida(cat, sub){
@@ -3487,7 +3568,7 @@ function marcarHistoriaLeida(cat, sub){
   read.add(key);
   saveReadSet(read);
   setPoints(getPoints() + PUNTOS_POR_HISTORIA);
-  refreshPointsBadge();
+  refreshPointsBadge(true);
   const pct = read.size / TOTAL_HISTORIAS;
   if(pct >= UMBRAL_PREMIO && lsGet('parentesys_premio_desbloqueado') !== '1'){
     lsSet('parentesys_premio_desbloqueado', '1');
@@ -3641,7 +3722,27 @@ function renderStory(story){
     body.appendChild(para);
   });
   currentFullText = full;
+  setTimeout(actualizarScrollCue, 50);
 }
+
+function actualizarScrollCue(){
+  const body = document.getElementById('storyBody');
+  const cue = document.getElementById('scrollCue');
+  if(!body || !cue) return;
+  const hayMasContenido = body.scrollHeight - body.clientHeight > 40;
+  cue.classList.toggle('show', hayMasContenido);
+}
+
+(function initScrollCueListener(){
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const body = document.getElementById('storyBody');
+    if(!body) return;
+    body.addEventListener('scroll', ()=>{
+      const cerca = body.scrollHeight - body.scrollTop - body.clientHeight < 30;
+      document.getElementById('scrollCue').classList.toggle('show', !cerca && body.scrollHeight - body.clientHeight > 40);
+    });
+  });
+})();
 
 function highlightAtCharIndex(idx){
   let match = null;
@@ -3703,6 +3804,10 @@ function goToClose(){
   const wrap = document.getElementById('closeOpts');
   wrap.innerHTML = '';
   document.getElementById('nextRow').classList.remove('in');
+  const pointsToast = document.getElementById('pointsToast');
+  const hitoToast = document.getElementById('hitoToast');
+  pointsToast.classList.remove('in'); pointsToast.textContent = '';
+  hitoToast.classList.remove('in'); hitoToast.textContent = '';
   opts.forEach((label, i)=>{
     const b = document.createElement('button');
     b.className = 'opt';
@@ -3710,12 +3815,49 @@ function goToClose(){
     b.onclick = function(){
       wrap.querySelectorAll('.opt').forEach(o=>o.style.borderColor = 'var(--line)');
       b.style.borderColor = 'var(--brass)';
+      mostrarFeedbackDePuntos();
       document.getElementById('nextRow').classList.add('in');
       marcarHistoriaLeida(currentCat, currentSub);
     };
     wrap.appendChild(b);
     setTimeout(()=>b.classList.add('in'), 150 + i*100);
   });
+}
+
+function mostrarFeedbackDePuntos(){
+  const pointsToast = document.getElementById('pointsToast');
+  const hitoToast = document.getElementById('hitoToast');
+  const read = getReadSet();
+  const yaLeida = read.has(currentCat.id + '::' + currentSub.id);
+  const puntosGanados = yaLeida ? 0 : PUNTOS_POR_HISTORIA;
+  const totalDespues = getPoints() + puntosGanados;
+  const readCountDespues = yaLeida ? read.size : read.size + 1;
+  const pctDespues = Math.min(100, Math.round((readCountDespues / TOTAL_HISTORIAS) * 100));
+
+  setTimeout(()=>{
+    pointsToast.textContent = puntosGanados > 0 ? ('+' + puntosGanados + ' pts · llevás ' + totalDespues + ' pts') : ('ya sumaste esta historia · ' + totalDespues + ' pts');
+    pointsToast.classList.add('in');
+  }, 150);
+
+  let mensajeHito = '';
+  if(pctDespues >= 100) mensajeHito = 'Leíste todas las historias disponibles. Impresionante recorrido.';
+  else if(pctDespues >= 80) mensajeHito = 'Estás a un paso del final. Ya desbloqueaste tu sesión gratuita con un coach.';
+  else if(pctDespues >= 50) mensajeHito = 'Vas por la mitad del camino. Cada historia suma una perspectiva nueva.';
+  else if(pctDespues >= 25) mensajeHito = 'Ya llevás un buen tramo recorrido. Seguí así.';
+  if(mensajeHito){
+    setTimeout(()=>{
+      hitoToast.textContent = mensajeHito;
+      hitoToast.classList.add('in');
+    }, 550);
+  }
+
+  const restantes = currentCat.subs.filter(s => !read.has(currentCat.id + '::' + s.id) && s.id !== currentSub.id).length;
+  const hint = document.getElementById('nextHint');
+  if(restantes > 0){
+    hint.innerHTML = 'quedan <span>' + restantes + ' historia' + (restantes===1?'':'s') + '</span> más sobre "' + currentCat.label + '"';
+  } else {
+    hint.innerHTML = 'ya viste todas las historias de <span>' + currentCat.label + '</span> · explorá otro tema';
+  }
 }
 
 document.getElementById('seguirBtn').onclick = function(){ selectCategory(currentCat); };
